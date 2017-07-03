@@ -157,7 +157,7 @@ downloadUI <- function(id, label = 'RData', type = "primary") {
 }
 download <- function(input, output, session, sim.obj, file_type = "RData") {
   dt.train <- data.frame(y = I(sim.obj$Y), x = I(sim.obj$X))
-  dt.test <- if (sim.obj$type == "multivariate"){
+  dt.test <- if (sim.obj$type != "univariate") {
     data.frame(y = I(sim.obj$testY), x = I(sim.obj$testX))
   } else {
     data.frame(y = I(sim.obj$TESTY), x = I(sim.obj$TESTX))
@@ -332,10 +332,10 @@ multivariateInputUI <- function(id) {
       column(6, textInput(ns("ypos"), label = "Response Mixup", 
                           value = "1, 3; 2, 4")),
       column(12, checkboxGroupInput(
-        inputId = ns("extra-plot"), 
+        inputId = ns("extraplot"), 
         label = "Display Extra Plots",
         choiceNames = c("Covariance Plot", "R-squared Plot"),
-        choiceValues = c("cov-plt", "r2-plt"),
+        choiceValues = c("covplt", "r2plt"),
         inline = TRUE
       ))
     )

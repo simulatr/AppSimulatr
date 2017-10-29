@@ -202,8 +202,8 @@ simPlotUI <- function(id, ...) {
 }
 simPlot <- function(input, output, session, sim_obj, which) {
   output$plot <- renderPlot({
-    ggplot_simulatr(sim_obj, which = which)
-  })
+    ggsimrelplot(sim_obj, which = which)
+  }, res = 105)
 }
 
 ## Simulation Plots :: Plot 2
@@ -215,6 +215,7 @@ covPlot <- function(input, output, session, sim_obj, cov.type, plot.type, orderi
   if (!exists("cov.df")) source("plot-function.R")
   plt <- plot(cov.df(sim_obj, type = cov.type, ordering = ordering), plot.type)
   plt <- plt + theme(text = element_text(size = 12))
+  plt <- plt + coord_fixed(ratio = 1.1)
   output$plot <- renderPlot(plt)
 }
 
@@ -253,8 +254,7 @@ simUI <- function(id, label = "Simulate Now", ...) {
     )
   )
 }
-sim <- function(input, output, session) {
-}
+sim <- function(input, output, session) {}
 
 ## Type UI
 simTypeUI <- function(id) {

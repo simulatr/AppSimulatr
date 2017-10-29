@@ -1,15 +1,15 @@
-## This is Simulatr App -------------------------
+## This is Shiny Simrel App -------------------------
 ##==============================
 
 ## Loading Packages and Functions -----------------------
-# pkgs <- c("shinydashboard", "shiny", "shinyBS", "simulatr", "envlp", 
+# pkgs <- c("shinydashboard", "shiny", "shinyBS", "simrel", "envlp",
 #           "leaflet", "shinyjs", "reshape2", "ggplot2", "pls")
 # for (pkg in pkgs) require(pkg, character.only = TRUE)
 library(shiny)
 library(shinydashboard)
 library(shinyBS)
 library(shinyjs)
-library(simulatr)
+library(simrel)
 library(envlp)
 library(leaflet)
 library(reshape2)
@@ -34,8 +34,8 @@ sideBarWidth <- 300
 ## Dashboard Page Starts --------------------------------------------------------------
 ui <- dashboardPage(
   skin = "blue",
-  dashboardHeader(title = "SimulatR NMBU", titleWidth = sideBarWidth),
-  
+  dashboardHeader(title = "Simulation NMBU", titleWidth = sideBarWidth),
+
   ## Sidebar Starts -----------------
   dashboardSidebar(
     width = sideBarWidth,
@@ -44,8 +44,8 @@ ui <- dashboardPage(
       simUI('sim-id'),
       simSeedUI('seed-id', input_lbl = NULL, btn_lbl = "New Seed"),
       menuItem(
-        "Parameter Settings", 
-        icon = icon("sliders"), 
+        "Parameter Settings",
+        icon = icon("sliders"),
         tabName = "settings",
         width = sideBarWidth,
         simTypeUI('sim-type'),
@@ -59,7 +59,7 @@ ui <- dashboardPage(
         menuItem("Simulation Overview", icon = icon("dashboard"), tabName = "overview"),
         ## Estimation Start -----------
         menuItem(
-          text = "Estimation", 
+          text = "Estimation",
           icon = icon("line-chart"),
           estMethodUI('estMthd'),
           menuSubItem("Summary", tabName = "estSummary"),
@@ -86,8 +86,8 @@ ui <- dashboardPage(
       )
     )
   ),
-  
-  ## Body Starts ------------------------------------------------------------------------------------------- 
+
+  ## Body Starts -------------------------------------------------------------------------------------------
   dashboardBody(
     tags$style("height:100vh;"),
     # tags$link(rel = "stylesheet", type = "text/css", href = "custom.css"),
@@ -95,7 +95,7 @@ ui <- dashboardPage(
       "!input['sim-id-update']",
       fluidRow(
         tags$style(
-          type = "text/css", 
+          type = "text/css",
           "#map {
               height: calc(100vh - 50px) !important;
               position: absolute;
@@ -113,11 +113,11 @@ ui <- dashboardPage(
           tabName = "overview",
           fluidRow(
             div(class = "col-md-12 col-lg-4", style = "padding-bottom:10px;",
-                simPlotUI('betaPlot', height = '300px')),
+                simPlotUI('betaPlot', height = '400px')),
             div(class = "col-md-12 col-lg-4", style = "padding-bottom:10px;",
-                simPlotUI('relComp', height = '300px')),
+                simPlotUI('relComp', height = '400px')),
             div(class = "col-md-12 col-lg-4", style = "padding-bottom:10px;",
-                simPlotUI('estRelComp', height = '300px'))
+                simPlotUI('estRelComp', height = '400px'))
           ),
           conditionalPanel(
             condition = 'output.extraplot == "covplt" && output.type == "multivariate"',
@@ -169,17 +169,17 @@ server <- function(input, output, session) {
   callModule(commonInput, 'common-parm')
   callModule(multivariateInput, 'multi-parm')
   callModule(bivariateInput, 'bi-parm')
-  
+
   ## Observe  -----------------------------------
   observe({
     ## Estimation Module -----------
     callModule(estMethod, 'estMthd')
     which_resp <- callModule(resp, 'rsp', ncol(as.matrix(simObj()[["Y"]])))
-    
+
     ## Model Summary and Plot Modules -------------
     callModule(estSummary, 'smry', simObj(), input[['estMthd-estMethod']], which_resp)
     callModule(estPlot, 'estPlts', simObj(), input[['estMthd-estMethod']], which_resp)
-    
+
     ## Output the simulation type --------
     output$type <- reactive(simObj()[["type"]])
     outputOptions(output, "type", suspendWhenHidden = FALSE)
@@ -187,7 +187,7 @@ server <- function(input, output, session) {
     output$extraplot <- eventReactive(input[['sim-id-update']], input[["multi-parm-extraplot"]])
     outputOptions(output, "extraplot", suspendWhenHidden = FALSE)
   })
-  
+
   ## Make some simulations ----------------------------------------
   simObj <- eventReactive(input[['sim-id-update']], {
       set.seed(input[['seed-id-newSeed']])
@@ -208,9 +208,9 @@ server <- function(input, output, session) {
       if (type() == "bivariate") {
         param$rho = c(input[['bi-parm-rho1']], input[['bi-parm-rho2']])
       }
-      do.call(simulatr, param)
+      do.call(simrel, param)
     })
-  
+
   ## Update Parameter Input -------------------
   observe({
     ## Observe input of Parameters ------------
@@ -230,7 +230,7 @@ server <- function(input, output, session) {
       updateTextInput(session, "common-parm-relpos", value = "1,2; 3,4,6")
     }
   })
-  
+
   ## Observe Some Event ----------------------------------------
   observeEvent(input[['seed-id-newSeedBtn']], {
     updateNumericInput(session, 'seed-id-newSeed', value = sample(9999, size = 1))
@@ -240,13 +240,13 @@ server <- function(input, output, session) {
     callModule(simPlot, 'betaPlot', simObj(), 1)
     callModule(simPlot, 'relComp', simObj(), 2)
     callModule(simPlot, 'estRelComp', simObj(), 3)
-    
+
     ## Download Button Modules ----------
     callModule(download, 'rdta', simObj(), "RData")
     callModule(download, 'csv', simObj(), "CSV")
     callModule(download, 'json', simObj(), "json")
     callModule(download, 'simobj', simObj(), "simobj")
-    
+
     ## Covariance Plot Module ----------
     if (all(identical(type(), "multivariate"),
             "covplt" %in% input[["multi-parm-extraplot"]])) {
@@ -255,18 +255,18 @@ server <- function(input, output, session) {
       callModule(covPlot, 'relpred', simObj(), "relpred", "relpred")
     }
   })
-  
+
   ## Home Page Map --------------------------------------------------
   output$map <- renderLeaflet({
     content <- paste(
       sep = "<br/>",
-      "<h3><a href='http://therimalaya.github.io/simulatr/'>Welcome to Simulatr</a></h3>",
+      "<h3><a href='http://simulatr.github.io/simrel/'>Welcome to Simrel</a></h3>",
       "<b><a href='http://www.nmbu.no'>Norwegian University of Life Science</a></b>",
       "Universitetstunet 3",
       "1433 Ås"
     )
     setView(
-      addTiles(leaflet(), options = list(opacity = 0.75)), 
+      addTiles(leaflet(), options = list(opacity = 0.75)),
       lng = 10.769563, lat = 59.666099, zoom = 17
     ) %>% addPopups(
       lng = 10.769563, lat = 59.666099, content,
@@ -275,5 +275,5 @@ server <- function(input, output, session) {
   })
 }
 
-## Run Simulatr App ------------
+## Run Simrel App ------------
 shinyApp(ui, server)

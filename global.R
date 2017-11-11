@@ -127,10 +127,10 @@ estMethodUI <- function(id) {
   ns <- NS(id)
   fluidRow(
     column(
-      width = 12, 
+      width = 12,
       selectInput(
-        ns("estMethod"), 
-        label = "Estimation Method:", 
+        ns("estMethod"),
+        label = "Estimation Method:",
         choices  = c(
            "Least Square Estimation" = "ols",
            "Principal Component Regression" = "pcr",
@@ -140,8 +140,8 @@ estMethodUI <- function(id) {
         width = "100%"
       )
     ),
-    bsTooltip(ns("estMethod"), 
-              "Estimation method to apply on simulated Data", 
+    bsTooltip(ns("estMethod"),
+              "Estimation method to apply on simulated Data",
               "top", "hover")
   )
 }
@@ -171,8 +171,8 @@ download <- function(input, output, session, sim.obj, file_type = "RData") {
   )
   downloadFn <- function(data, type = "Rdata") {
     downloadHandler(
-      filename <- function() 
-        ifelse(type == "simobj", 
+      filename <- function()
+        ifelse(type == "simobj",
                paste("sim.obj.rdata"),
                paste("sim.obj", type, sep = ".")),
       content = function(file) {
@@ -209,14 +209,14 @@ simPlot <- function(input, output, session, sim_obj, which) {
 ## Simulation Plots :: Plot 2
 covPlotUI <- function(id, ...) {
   ns <- NS(id)
-  plotOutput(ns('plot'), ...)
+  tagList(
+    plotOutput(ns('plot'), ...)
+  )
 }
-covPlot <- function(input, output, session, sim_obj, cov.type, plot.type, ordering = NULL) {
-  if (!exists("cov.df")) source("plot-function.R")
-  plt <- plot(cov.df(sim_obj, type = cov.type, ordering = ordering), plot.type)
-  plt <- plt + theme(text = element_text(size = 12))
-  plt <- plt + coord_fixed(ratio = 1.1)
-  output$plot <- renderPlot(plt)
+covPlot <- function(input, output, session, sim_obj, plot_type) {
+  output$plot <- renderPlot({
+    cov_plot(sim_obj, plot_type)
+  }, res = 105)
 }
 
 ## Param Menu Panel
@@ -243,31 +243,32 @@ paramMenu <- function(input, output, session) {
 simUI <- function(id, label = "Simulate Now", ...) {
   ns <- NS(id)
   column(
-    12, 
+    12,
     div(
       h3(actionLink(
-        ns("update"), 
-        label = label, 
-        icon = icon("refresh"), 
+        ns("update"),
+        label = label,
+        icon = icon("refresh"),
         ...
       )), class = "text-center"
     )
   )
 }
-sim <- function(input, output, session) {}
+sim <- function(input, output, session) {
+}
 
 ## Type UI
 simTypeUI <- function(id) {
   ns <- NS(id)
   fluidRow(
     column(
-      width = 12, 
+      width = 12,
       selectInput(
-        inputId = ns("type"), 
-        label = "Type of simulation:", 
+        inputId = ns("type"),
+        label = "Type of simulation:",
         choices = c("Univariate Simulation" = "univariate",
                     "Bivariate Simulation" = "bivariate",
-                    "Multivariate Simulation" = "multivariate"), 
+                    "Multivariate Simulation" = "multivariate"),
         selected = "multivariate",
         width = "100%"
       )
@@ -300,48 +301,52 @@ simSeed <- function(input, output, session) {
 ## Common Input Panel
 commonInputUI <- function(id) {
   ns <- NS(id)
-  tagList(
-    fluidRow(
-      column(6, numericInput(ns("n"), label = "N: Train", value = 200, min = 10, step = 1)),
-      column(6, numericInput(ns("n_test"), label = "N: Test", value = 50, min = 5, step = 1))
-    ),
-    fluidRow(
-      column(6, numericInput(ns("p"), label = "N: Predictors", value = 15, min = 2, step = 1)),
-      column(6, textInput(ns("q"), label = "Rel.Pred", value = "5, 4"))
-    ),
-    fluidRow(
-      column(6, textInput(ns("R2"), label = "Coef. Determination", value = "0.8, 0.7")),
-      column(6, textInput(ns("relpos"), label = "RelPos.Comp", 
-                          value = "1, 2; 3, 4, 6"))
-    ),
-    fluidRow(
-      column(12, sliderInput(ns("gamma"), "Gamma", 
-                             min = 0, max = 1, value = 0.6, step = 0.1, width = "100%"))
-    )
-  )
+  uiOutput(ns("commonUI"))
 }
 commonInput <- function(input, output, session) {
+  output$commonUI <- renderUI({
+    ns <- session$ns
+    tagList(
+      fluidRow(
+        column(6, numericInput(ns("n"), label = "N: Train", value = 200, min = 10, step = 1)),
+        column(6, numericInput(ns("n_test"), label = "N: Test", value = 50, min = 5, step = 1))
+      ),
+      fluidRow(
+        column(6, numericInput(ns("p"), label = "N: Predictors", value = 15, min = 2, step = 1)),
+        column(6, textInput(ns("q"), label = "Rel.Pred", value = "5, 4"))
+      ),
+      fluidRow(
+        column(6, textInput(ns("R2"), label = "Coef. Determination", value = "0.8, 0.7")),
+        column(6, textInput(ns("relpos"), label = "RelPos.Comp",
+                            value = "1, 2; 3, 4, 6"))
+      ),
+      fluidRow(
+        conditionalPanel(
+          condition = "input['sim-type-type'] != 'multivariate'",
+          column(12, sliderInput(ns("gamma"), "Gamma", min = 0, max = 2, value = 0.6, step = 0.1))
+        )
+      )
+    )
+  })
 }
 
 ## Multivariate Input Panel
 multivariateInputUI <- function(id) {
   ns <- NS(id)
-  tagList(
-    fluidRow(
-      column(6, numericInput(ns("m"), label = "N: Response", value = 4, min = 2, step = 1)),
-      column(6, textInput(ns("ypos"), label = "Response Mixup", 
-                          value = "1, 3; 2, 4")),
-      column(12, checkboxGroupInput(
-        inputId = ns("extraplot"), 
-        label = "Display Extra Plots",
-        choiceNames = c("Covariance Plot", "R-squared Plot"),
-        choiceValues = c("covplt", "r2plt"),
-        inline = TRUE
-      ))
-    )
-  )
+  uiOutput(ns("mvrUI"))
 }
 multivariateInput <- function(input, output, session) {
+  output$mvrUI <- renderUI({
+    ns <- session$ns
+    tagList(
+      fluidRow(
+        column(6, sliderInput(ns("gamma"), label = "gamma", value = 0.5, min = 0, step = 0.01, max = 2)),
+        column(6, sliderInput(ns("eta"), label = "eta", value = 0, min = 0, step = 0.01, max = 2)),
+        column(6, numericInput(ns("m"), label = "N: Response", value = 4, min = 2, step = 1)),
+        column(6, textInput(ns("ypos"), label = "Response Mixup", value = "1, 3; 2, 4"))
+      )
+    )
+  })
 }
 
 ## Bivariate Input Panel
@@ -350,12 +355,33 @@ bivariateInputUI <- function(id) {
   tagList(
     fluidRow(
       column(12, div(em("Correlation between Response")), style = "text-align:center;"),
-      column(6, sliderInput(ns("rho1"), "Without Given X", 
+      column(6, sliderInput(ns("rho1"), "Without Given X",
                             min = -1, max = 1, value = 0.6, step = 0.1, width = "100%")),
-      column(6, sliderInput(ns("rho2"), "With Given X", 
+      column(6, sliderInput(ns("rho2"), "With Given X",
                             min = -1, max = 1, value = 0.7, step = 0.1, width = "100%"))
     )
   )
 }
 bivariateInput <- function(input, output, session) {
+}
+
+## Extra Input Panel
+extraInputUI <- function(id){
+  ns <- NS(id)
+  uiOutput(ns("extraInput"))
+}
+extraInput <- function(input, output, session) {
+  output$extraInput <- renderUI({
+    ns <- session$ns
+    fluidRow(
+      column(12, checkboxGroupInput(
+        inputId = ns("extraplot"),
+        label = "Display Extra Plots",
+        choiceNames = c("Covariance Plot", "R-squared Plot"),
+        choiceValues = c("covplt", "r2plt"),
+        selected = "covplt",
+        inline = TRUE,
+      ))
+    )
+  })
 }

@@ -1,0 +1,149 @@
+@import url('https://fonts.googleapis.com/css?family=Quicksand');
+
+/* Making page fit to container */
+.main-sidebar.shiny-bound-input{
+  font-family: Quicksand, "serif";
+  font-size-adjust: 0.8;
+}
+.content-wrapper>section.content{
+  padding: 0;
+  margin: 0;
+}
+a, a:hover, a:focus, a:active, a:visited{
+  text-decoration: none!important;
+}
+#download h4.text-primary:hover {
+    border-bottom: 3px solid #337ab7;
+    padding-bottom: 10px;
+    margin-bottom: -10px;
+}
+#download .text-muted.text-center {
+    padding-bottom: 10px;
+}
+#download .text-muted.text-center:before {
+    border-bottom: 1px solid;
+    width: 60%;
+    position: absolute;
+    bottom: 0;
+    left: 20%;
+    content: "";
+}
+
+/* About Page */
+#about{
+    position: relative;
+    background-color: whitesmoke;
+    width: 100%;
+    height: 100vh;
+}
+#about>div{
+    width: 80%;
+    margin: 0 auto;
+}
+#about>div pre{
+    border: none;
+}
+
+/* Flowchart Page */
+#flowchart{
+    position: relative;
+    background-color: whitesmoke;
+    width: 100%;
+    height: 100vh;
+}
+
+
+/* Justified Tab Start */
+/* .tabbable .nav.nav-tabs { */
+/*   width: 100%; */
+/*   border-bottom: 0; */
+/* } */
+/* .tabbable .nav.nav-tabs > li { */
+/*   float: none; */
+/* } */
+/* .tabbable .nav.nav-tabs > li > a { */
+/*   margin-bottom: 5px; */
+/*   text-align: center; */
+/* } */
+/* .tabbable .nav.nav-tabs > li > a { */
+/*   margin-right: 0; */
+/*   border-radius: 4px; */
+/* } */
+/* .tabbable .nav.nav-tabs > .active > a, */
+/* .tabbable .nav.nav-tabs > .active > a:hover, */
+/* .tabbable .nav.nav-tabs > .active > a:focus { */
+/*   border: 1px solid #ddd; */
+/* } */
+/* @media (min-width: 768px) { */
+/*   .tabbable .nav.nav-tabs > li > a { */
+/*     border-bottom: 1px solid #ddd; */
+/*     border-radius: 4px 4px 0 0; */
+/*   } */
+/*   .tabbable .nav.nav-tabs > .active > a, */
+/*   .tabbable .nav.nav-tabs > .active > a:hover, */
+/*   .tabbable .nav.nav-tabs > .active > a:focus { */
+/*     border-bottom-color: #fff; */
+/*   } */
+/* } */
+/* .tabbable .nav.nav-tabs { */
+/*   width: 100%; */
+/* } */
+/* .tabbable .nav.nav-tabs > li { */
+/*   float: none; */
+/* } */
+/* .tabbable .nav.nav-tabs > li > a { */
+/*   margin-bottom: 5px; */
+/*   text-align: center; */
+/* } */
+/* @media (min-width: 768px) { */
+/*   .tabbable .nav.nav-tabs > li { */
+/*     display: table-cell; */
+/*     width: 1%; */
+/*   } */
+/*   .tabbable .nav.nav-tabs > li > a { */
+/*     margin-bottom: 0; */
+/*   } */
+/* } */
+/* Justified Tab End*/
+
+
+/* Grid Layout Page Start*/
+
+/* GRID LAYOUT */
+
+/* GRID START */
+.grid-container {
+    display: grid;
+    grid-template-areas:
+        "simplot2 simplot2 covplot1"
+        "simplot3 simplot3 covplot3"
+        "simplot1 simplot1 covplot2";
+    grid-template-columns: repeat(2, 1fr) 400px;
+    grid-template-rows: repeat(3, 1fr);
+    grid-gap: 10px;
+    height: 100%;
+}
+.grid-content{
+    overflow-x: scroll;
+    /* background-color: red; */
+}
+
+#simplot1{grid-area: simplot1;}
+#simplot2{grid-area: simplot2;}
+#simplot3{grid-area: simplot3;}
+#covplot1{grid-area: covplot1;}
+#covplot2{grid-area: covplot2;}
+#covplot3{grid-area: covplot3;}
+
+/* Media Queries */
+@media (max-width: 1024px) {
+    .grid-container{
+        grid-template-areas:
+            "simplot2 simplot2 simplot2"
+            "simplot3 simplot3 simplot3"
+            "simplot1 simplot1 simplot1"
+            "covplot1 covplot2 covplot3";
+        grid-template-columns: repeat(3, 1fr);
+        grid-template-rows: repeat(4, 1fr);
+    }
+}

@@ -14,6 +14,7 @@ library(envlp)
 library(leaflet)
 library(reshape2)
 library(ggplot2)
+library(plotly)
 library(pls)
 
 source("global.R")
@@ -29,13 +30,14 @@ parseText <- function(x) {
 }
 
 ## Specify SideBar Width --------------------------------------------------------------
-sideBarWidth <- 300
+sideBarWidth <- 350
 
 ## Dashboard Page Starts --------------------------------------------------------------
 ui <- dashboardPage(
   skin = "blue",
-  dashboardHeader(title = "Simulation NMBU", titleWidth = sideBarWidth),
-
+  dashboardHeader(
+    title = "Simulation NMBU", 
+    titleWidth = sideBarWidth),
   ## Sidebar Starts -----------------
   dashboardSidebar(
     width = sideBarWidth,
@@ -48,10 +50,12 @@ ui <- dashboardPage(
         icon = icon("sliders"),
         tabName = "settings",
         width = sideBarWidth,
+        startExpanded = TRUE,
         simTypeUI('sim-type'),
         commonInputUI('common-parm'),
         conditionalPanel("input['sim-type-type'] == 'multivariate'", multivariateInputUI('multi-parm')),
-        conditionalPanel("input['sim-type-type'] == 'bivariate'", bivariateInputUI('bi-parm'))
+        conditionalPanel("input['sim-type-type'] == 'bivariate'", bivariateInputUI('bi-parm')),
+        extraInputUI('extra-input')
       )),
     conditionalPanel(
       "input['sim-id-update']",
@@ -79,7 +83,7 @@ ui <- dashboardPage(
         ## Download Buttons ----
         div(
           column(4, downloadUI('simobj', "SimObj")),
-          column(4, downloadUI('rdta', "RData")),
+          column(4, downloadUI('csv', "CSV")),
           column(4, downloadUI('json', "JSON")),
           style = "bottom:5px; position:absolute; width:100%"
         )
@@ -120,7 +124,7 @@ ui <- dashboardPage(
                 simPlotUI('estRelComp', height = '400px'))
           ),
           conditionalPanel(
-            condition = 'output.extraplot == "covplt" && output.type == "multivariate"',
+            condition = 'output.extraplot == "covplt"',
             fluidRow(
               div(class = "col-sm-12 col-md-4", style = "padding-bottom:10px;",
                   covPlotUI('relpos', height = '400px')),
@@ -169,6 +173,7 @@ server <- function(input, output, session) {
   callModule(commonInput, 'common-parm')
   callModule(multivariateInput, 'multi-parm')
   callModule(bivariateInput, 'bi-parm')
+  callModule(extraInput, 'extra-input')
 
   ## Observe  -----------------------------------
   observe({
@@ -184,7 +189,7 @@ server <- function(input, output, session) {
     output$type <- reactive(simObj()[["type"]])
     outputOptions(output, "type", suspendWhenHidden = FALSE)
     ## Output if extraplot is needed or not
-    output$extraplot <- eventReactive(input[['sim-id-update']], input[["multi-parm-extraplot"]])
+    output$extraplot <- eventReactive(input[['sim-id-update']], input[["extra-input-extraplot"]])
     outputOptions(output, "extraplot", suspendWhenHidden = FALSE)
   })
 
@@ -246,13 +251,12 @@ server <- function(input, output, session) {
     callModule(download, 'csv', simObj(), "CSV")
     callModule(download, 'json', simObj(), "json")
     callModule(download, 'simobj', simObj(), "simobj")
-
+    
     ## Covariance Plot Module ----------
-    if (all(identical(type(), "multivariate"),
-            "covplt" %in% input[["multi-parm-extraplot"]])) {
-      callModule(covPlot, 'relpos', simObj(), "relpos", "relpos", TRUE)
-      callModule(covPlot, 'rotation', simObj(), "rotation", "relpred")
-      callModule(covPlot, 'relpred', simObj(), "relpred", "relpred")
+    if ("covplt" %in% input[["extra-input-extraplot"]]) {
+      callModule(covPlot, 'relpos', simObj(), "relpos")
+      callModule(covPlot, 'rotation', simObj(), "rotation")
+      callModule(covPlot, 'relpred', simObj(), "relpred")
     }
   })
 

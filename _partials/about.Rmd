@@ -1,11 +1,25 @@
 ---
-output: md_document
+title: Simulation of Linear Model Data
+author: Raju Rimal
+bibliography: ../ref-db.bib
+
+output: 
+  html_document:
+    theme: null
+    mathjax: null
 ---
 
-# Simulation of Linear Model Data
 
 This shiny application is an interface to the R-package called `simrel`. This package simulates the linear model data with wide range of properties based on users parameters. The parameters depends on the number of response variables. Based on number of response, the package has three main functions: Univariate, Bivariate and Multivariate. 
 
-## Univariate simulation
+## Univariate Simulation
+@saebo2015simrel started this r-package based on the concept of relevant components [@helland1994comparison] in order to simulate the linear model data with single response by controlling few simulation parameters. These parameters includes number of relevant predictors, decay factor of eigenvalues and coefficients of determination. In addition, user can even specify the position of the relevant principle components. Since the package is based on covariance structure of latent space (principle components), by tuining few simulation parameters this package is able to give datasets wide range of properties.
+
+## Multivariate Simulation
+The concept from univariate simulation is extended to obtain multiple response variables. The concept underneath the function uses both principal components of predictors and response variables. Here user can specify parameters such as which principle components of predictors are relevant for a specific principal component of response variables and decay parameters of eigenvalues of both predictors and response variables. In multivariate simulation, we assumed that the unconditional correlation between principal components of response variables is zero. This assumption simplifies the simulation process in order to search for covariance structure that satisfies the user inputs. This leads to the dataset where any two principal componnents of response does not share any common relevant predictors components.
+
+## Bivariate Simulation
+Extending the concept of univariate simulation, bivariate simulation simulates datasets with two response variables. Unlike multivariate simulation, here we assume that the response variables may share a common relevent predictor components. This leads to possibility of non-zero conditional and unconditional correlation between response variables. In this simulation, users can also specify these correlation while simulting data.
 
 
+## References

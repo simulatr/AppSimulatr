@@ -11,7 +11,9 @@ library(ggplot2)
 library(plotly)
 library(pls)
 shinyjs::useShinyjs()
-rmarkdown::render("_partials/about.Rmd")
+
+## Render About Page ----
+rmarkdown::render("_partials/about.Rmd", quiet = TRUE)
 
 ## Some Functions ---------------
 parseText <- function(x) {
@@ -34,66 +36,88 @@ ui <- dashboardPage(
   ## Sidebar Starts -----------------
   dashboardSidebar(
     shinyjs::useShinyjs(),
+    shinyjs::extendShinyjs("www/script.js"),
     width = sideBarWidth,
     collapsed = FALSE,
     tags$head(tags$link(rel="stylesheet", href="styles.css")),
-    sidebarMenu(
-      id = "sidebar",
-      ## Paramter Settings --------------------------
-      menuItem(
-        id = "settings",
-        "Parameter Settings",
-        icon = icon("sliders"),
-        tabName = "settings",
-        simUI('sim-id'),
-        simSeedUI('seed-id',
-                  input_lbl = NULL,
-                  btn_lbl = "New Seed"),
-        width = sideBarWidth,
-        simTypeUI('sim-type'),
-        commonInputUI('common-parm'),
-        conditionalPanel("input['sim-type-type'] == 'multivariate'",
-                         multivariateInputUI('multi-parm')),
-        conditionalPanel("input['sim-type-type'] == 'bivariate'",
-                         bivariateInputUI('bi-parm')),
-        extraInputUI('extra-input')
-      )),
-    conditionalPanel(
-      "input['sim-id-update']",
+    div(
+      id = "except-download",
       sidebarMenu(
-        menuItem("Simulation Overview",
-                 icon = icon("dashboard"),
-                 tabName = "overview"),
-        ## Estimation Start -----------
+        id = "sidebar",
+        ## Paramter Settings --------------------------
         menuItem(
-          text = "Estimation",
-          icon = icon("line-chart"),
-          estMethodUI('estMthd'),
-          menuSubItem("Summary",
-                      tabName = "estSummary"),
-          menuSubItem("Plots",
-                      tabName = "estPlots")
-        ),
-        ## Comparison of Estimation Methods ------------------
+          id = "settings",
+          "Parameter Settings",
+          icon = icon("sliders"),
+          tabName = "settings",
+          simUI('sim-id'),
+          simSeedUI('seed-id',
+                    input_lbl = NULL,
+                    btn_lbl = "New Seed"),
+          width = sideBarWidth,
+          simTypeUI('sim-type'),
+          commonInputUI('common-parm'),
+          conditionalPanel("input['sim-type-type'] == 'multivariate'",
+                           multivariateInputUI('multi-parm')),
+          conditionalPanel("input['sim-type-type'] == 'bivariate'",
+                           bivariateInputUI('bi-parm')),
+          extraInputUI('extra-input')
+        )),
+      conditionalPanel(
+        "input['sim-id-update']",
+        sidebarMenu(
+          menuItem("Simulation Overview",
+                   icon = icon("dashboard"),
+                   tabName = "overview"),
+          ## Estimation Start -----------
+          shinyjs::hidden(menuItem(
+            text = "Estimation",
+            icon = icon("line-chart"),
+            estMethodUI('estMthd'),
+            menuSubItem("Summary",
+                        tabName = "estSummary"),
+            menuSubItem("Plots",
+                        tabName = "estPlots")
+          ),
+          ## Comparison of Estimation Methods ------------------
+          menuItem(
+            text = "Method Comparison",
+            icon = icon("tasks"),
+            tabName = "estSummary"
+          ))
+        )
+      ),
+      sidebarMenu(
         menuItem(
-          text = "Method Comparison",
-          icon = icon("tasks"),
-          tabName = "estSummary"
+          text = "Parameters Details",
+          icon = icon('info'),
+          tabName = "parmdesc"
         ),
-        ## Download Buttons ----
-        uiOutput("download")
+        menuItem(
+          text = "Flowchart",
+          icon = icon("map-o"),
+          tabName = "flowchart"
+        ),
+        menuItem(
+          text = "About",
+          icon = icon("info"),
+          tabName = "about"
+        )
       )
     ),
-    sidebarMenu(
-      menuItem(
-        text = "Flowchart",
-        icon = icon("map-o"),
-        tabName = "flowchart"
+    div(
+      id = "sidebar-bottom",
+      conditionalPanel(
+        id = "download",
+        "input['sim-id-update']",
+        ## Download Buttons ----
+        uiOutput("download")
       ),
-      menuItem(
-        text = "About",
-        icon = icon("info"),
-        tabName = "about"
+      column(
+        width = 12,
+        id = "copyright",
+        div(class="text-center",
+            "Copyright © Raju Rimal, NMBU, Norway")
       )
     )
   ),
@@ -125,8 +149,12 @@ ui <- dashboardPage(
         tabName = "overview",
         conditionalPanel(
           "input['sim-id-update']",
-          uiOutput("homepage")
+          dashboardUI("dash")
         )
+      ),
+      tabItem(
+        tabName = "parmdesc",
+        paramPlusUI("parm-details")
       ),
       ## Estimation Overview -----------------
       tabItem(
@@ -141,7 +169,7 @@ ui <- dashboardPage(
       ),
       tabItem(
         tabName = "about",
-        uiOutput("about")
+        htmlOutput("about")
       )
     )
   )
@@ -149,6 +177,7 @@ ui <- dashboardPage(
 
 ## ---- Server Function ---------
 server <- function(input, output, session) {
+
   ## Calling Modules ---------------------------
   type <- callModule(simType, 'sim-type')
   callModule(sim, 'sim-id')
@@ -157,6 +186,7 @@ server <- function(input, output, session) {
   callModule(multivariateInput, 'multi-parm')
   callModule(bivariateInput, 'bi-parm')
   callModule(extraInput, 'extra-input')
+  callModule(paramPlus, 'parm-details', type)
 
   ## Observe  -----------------------------------
   observe({
@@ -229,16 +259,22 @@ server <- function(input, output, session) {
                        value = sample(9999, size = 1))
   })
   observeEvent(input[['sim-id-update']], {
+    ## Call Dashboard Module ----
+    callModule(dashboard, "dash", simObj(), type())
     ## Collapse Parameter input panel ----
     shinyjs::hide(selector = "ul.treeview-menu.menu-open", anim = TRUE)
     shinyjs::removeClass(selector = ".sidebar-menu>li.treeview.active",
                          class = "active")
-    
 
     ## Simulation Plot Modules -----------
     callModule(simPlot, 'betaPlot', simObj(), 1)
     callModule(simPlot, 'relComp', simObj(), 2)
     callModule(simPlot, 'estRelComp', simObj(), 3)
+
+    ## Simulation Plot Modules for tabPanel -----------
+    callModule(simPlot, 'betaPlot1', simObj(), 1)
+    callModule(simPlot, 'relComp1', simObj(), 2)
+    callModule(simPlot, 'estRelComp1', simObj(), 3)
 
     ## Download Button Modules ----------
     callModule(download, 'rdta', simObj(), "RData")
@@ -251,39 +287,42 @@ server <- function(input, output, session) {
       callModule(covPlot, 'relpos', simObj(), "relpos")
       callModule(covPlot, 'rotation', simObj(), "rotation")
       callModule(covPlot, 'relpred', simObj(), "relpred")
+
+      ## Covariance Plots for tab panel ----
+      callModule(covPlot, 'relpos1', simObj(), "relpos")
+      callModule(covPlot, 'rotation1', simObj(), "rotation")
+      callModule(covPlot, 'relpred1', simObj(), "relpred")
+
     }
   })
 
   ## About Page ----
   output$about <- renderUI({
     div(
-      id = "about",
-      fluidRow(includeMarkdown("_partials/about.md"))
+      fluidRow(withMathJax(includeHTML("_partials/about.html")))
     )
   })
 
-  ## Home Page ----
-  output$homepage <- renderUI({
-    source("_partials/homepage.R")
-    homepage()
+  ## Parameter Description ----
+  output$parmdesc <- renderUI({
+    shinyjs::runjs("$('#map').hide();")
+    source("_partials/parameters-description.R")
+    parm_desc(type = type())
   })
 
   ## Flowchart Page ------
   output$flowchart <- renderUI({
     div(
       id = "flowchart",
-      fluidRow(includeHTML("flowchart.html"))
+      fluidRow(includeHTML("_partials/flowchart.html"))
     )
   })
 
   ## Download Buttons and Copyright -------
   output$download <- renderUI({
-    copy_info <- "Copyright © Raju Rimal, NMBU, Norway"
     fluidRow(
       column(
         width = 12,
-        style = "bottom: 5px; position: absolute;",
-        column(12, div(class="text-muted text-center", copy_info)),
         column(4, downloadUI('simobj', "RData")),
         column(4, downloadUI('csv', "CSV")),
         column(4, downloadUI('json', "JSON"))

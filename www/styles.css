@@ -1,32 +1,66 @@
 @import url('https://fonts.googleapis.com/css?family=Quicksand');
+@import url('https://fonts.googleapis.com/css?family=Source+Code+Pro');
+
+/* Fix dimenstion of page */
+body{
+  height: 100vh;
+  overflow: hidden;
+}
 
 /* Making page fit to container */
 .main-sidebar.shiny-bound-input{
   font-family: Quicksand, "serif";
-  font-size-adjust: 0.8;
 }
 .content-wrapper>section.content{
   padding: 0;
   margin: 0;
+  height: 100vh;
+  overflow-y: scroll;
 }
+
 a, a:hover, a:focus, a:active, a:visited{
   text-decoration: none!important;
 }
+
+/* Sidebar */
+section.sidebar.shiny-bound-input {
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    height: calc(100vh - 40px);
+    overflow-x: hidden;
+    overflow-y: scroll;
+}
+
+/* Download buttons */
+#download{
+  padding-top: 15px;
+}
 #download h4.text-primary:hover {
-    border-bottom: 3px solid #337ab7;
-    padding-bottom: 10px;
-    margin-bottom: -10px;
+    border-top: 3px solid #337ab7;
+    padding-top: 10px;
+    margin-top: -10px;
 }
-#download .text-muted.text-center {
-    padding-bottom: 10px;
+#copyright{
+  background-color: #367fa9;
+  color: #fff;
+  border-bottom: 0 solid transparent;
+  display: block;
+  float: left;
+  height: 50px;
+  line-height: 50px;
+  text-align: center;
+  font-family: "Helvetica Neue",Helvetica,Arial,sans-serif;
+  padding: 0 15px;
+  font-weight: 300;
+  overflow: hidden;
+  margin-top: 10px;
 }
-#download .text-muted.text-center:before {
-    border-bottom: 1px solid;
-    width: 60%;
-    position: absolute;
-    bottom: 0;
-    left: 20%;
-    content: "";
+
+/* Home Page */
+#dash-homepage{
+  margin-bottom: 100px;
+  max-width: 100%;
 }
 
 /* About Page */
@@ -34,7 +68,9 @@ a, a:hover, a:focus, a:active, a:visited{
     position: relative;
     background-color: whitesmoke;
     width: 100%;
-    height: 100vh;
+    min-height: calc(100vh - 100px);
+    overflow-y: scroll;
+    margin-bottom: 50px;
 }
 #about>div{
     width: 80%;
@@ -43,107 +79,103 @@ a, a:hover, a:focus, a:active, a:visited{
 #about>div pre{
     border: none;
 }
+#about .title, #about .author{
+  text-align:center;
+}
+#about .author{
+  margin-bottom: 50px;
+}
+#about p{
+  font-size: 1.2em;
+  font-weight: 300;
+}
 
 /* Flowchart Page */
 #flowchart{
     position: relative;
     background-color: whitesmoke;
     width: 100%;
-    height: 100vh;
+    min-height: 100vh;
 }
 
-
-/* Justified Tab Start */
-/* .tabbable .nav.nav-tabs { */
-/*   width: 100%; */
-/*   border-bottom: 0; */
-/* } */
-/* .tabbable .nav.nav-tabs > li { */
-/*   float: none; */
-/* } */
-/* .tabbable .nav.nav-tabs > li > a { */
-/*   margin-bottom: 5px; */
-/*   text-align: center; */
-/* } */
-/* .tabbable .nav.nav-tabs > li > a { */
-/*   margin-right: 0; */
-/*   border-radius: 4px; */
-/* } */
-/* .tabbable .nav.nav-tabs > .active > a, */
-/* .tabbable .nav.nav-tabs > .active > a:hover, */
-/* .tabbable .nav.nav-tabs > .active > a:focus { */
-/*   border: 1px solid #ddd; */
-/* } */
-/* @media (min-width: 768px) { */
-/*   .tabbable .nav.nav-tabs > li > a { */
-/*     border-bottom: 1px solid #ddd; */
-/*     border-radius: 4px 4px 0 0; */
-/*   } */
-/*   .tabbable .nav.nav-tabs > .active > a, */
-/*   .tabbable .nav.nav-tabs > .active > a:hover, */
-/*   .tabbable .nav.nav-tabs > .active > a:focus { */
-/*     border-bottom-color: #fff; */
-/*   } */
-/* } */
-/* .tabbable .nav.nav-tabs { */
-/*   width: 100%; */
-/* } */
-/* .tabbable .nav.nav-tabs > li { */
-/*   float: none; */
-/* } */
-/* .tabbable .nav.nav-tabs > li > a { */
-/*   margin-bottom: 5px; */
-/*   text-align: center; */
-/* } */
-/* @media (min-width: 768px) { */
-/*   .tabbable .nav.nav-tabs > li { */
-/*     display: table-cell; */
-/*     width: 1%; */
-/*   } */
-/*   .tabbable .nav.nav-tabs > li > a { */
-/*     margin-bottom: 0; */
-/*   } */
-/* } */
-/* Justified Tab End*/
-
-
 /* Grid Layout Page Start*/
-
-/* GRID LAYOUT */
-
-/* GRID START */
-.grid-container {
+/* Overview Container */
+#overview-container.grid-container {
+    width: 100%;
     display: grid;
     grid-template-areas:
         "simplot2 simplot2 covplot1"
         "simplot3 simplot3 covplot3"
         "simplot1 simplot1 covplot2";
-    grid-template-columns: repeat(2, 1fr) 400px;
-    grid-template-rows: repeat(3, 1fr);
+    grid-template-columns: repeat(3, 1fr);
+    grid-template-rows: repeat(3, auto);
     grid-gap: 10px;
     height: 100%;
 }
-.grid-content{
-    overflow-x: scroll;
-    /* background-color: red; */
+#overview-container .grid-content{}
+
+/* Simulation Plots */
+#overview-container #simplot1{grid-area: simplot1;}
+#overview-container #simplot2{grid-area: simplot2;}
+#overview-container #simplot3{grid-area: simplot3;}
+#overview-container #covplot1{grid-area: covplot1;}
+#overview-container #covplot2{grid-area: covplot2;}
+#overview-container #covplot3{grid-area: covplot3;}
+
+@media (max-width: 1024px) {
+    #overview-container.grid-container{
+        width: 100%;
+        grid-template-areas:
+            "simplot2 simplot2 simplot2 simplot2"
+            "simplot3 simplot3 simplot3 simplot3"
+            "simplot1 simplot1 simplot1 simplot1"
+            "covplot1 covplot1 covplot1 covplot1"
+            "covplot2 covplot2 covplot2 covplot2"
+            "covplot3 covplot3 covplot3 covplot3";
+        grid-template-columns: repeat(4, 1fr);
+        grid-template-rows: repeat(6, auto);
+    }
 }
 
-#simplot1{grid-area: simplot1;}
-#simplot2{grid-area: simplot2;}
-#simplot3{grid-area: simplot3;}
-#covplot1{grid-area: covplot1;}
-#covplot2{grid-area: covplot2;}
-#covplot3{grid-area: covplot3;}
+/* Parameter Details */
+#parameters-details .grid-content .box-header .box-title div {
+    display: grid;
+    grid-auto-flow: column;
+    grid-gap: 15px;
+    align-content: baseline;
+}
 
-/* Media Queries */
-@media (max-width: 1024px) {
-    .grid-container{
-        grid-template-areas:
-            "simplot2 simplot2 simplot2"
-            "simplot3 simplot3 simplot3"
-            "simplot1 simplot1 simplot1"
-            "covplot1 covplot2 covplot3";
-        grid-template-columns: repeat(3, 1fr);
-        grid-template-rows: repeat(4, 1fr);
-    }
+#parameters-details{
+    position: relative;
+    display: grid;
+    width: 100%;
+    grid-gap: 10px;
+    grid-template-columns: 1fr;
+}
+
+@media (min-width: 1200px) {
+  #parameters-details{
+      grid-template-columns: repeat(2, 1fr);
+  }
+}
+@media (min-width: 1600px) {
+  #parameters-details{
+      grid-template-columns: repeat(3, 1fr);
+  }
+}
+
+/* Plot Details */
+#plot-details .details-container .details {
+  font-family: palatino, times;
+  font-size: 1.2em;
+  padding-top: 20px;
+}
+@media (max-width: 1400px) {
+  #plot-details.flexfill-container {
+    height: 100vh!important;
+    flex-direction: column !important;
+  }
+  #plot-details.flexfill-container div{
+    flex: 1!important;
+  }
 }

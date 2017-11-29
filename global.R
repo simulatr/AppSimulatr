@@ -203,7 +203,7 @@ simPlotUI <- function(id, ...) {
 simPlot <- function(input, output, session, sim_obj, which) {
   output$plot <- renderPlot({
     ggsimrelplot(sim_obj, which = which)
-  }, res = 105)
+  }, res = 118)
 }
 
 ## Simulation Plots :: Plot 2
@@ -361,8 +361,7 @@ bivariateInputUI <- function(id) {
     )
   )
 }
-bivariateInput <- function(input, output, session) {
-}
+bivariateInput <- function(input, output, session) {}
 
 ## Extra Input Panel
 extraInputUI <- function(id){
@@ -378,8 +377,356 @@ extraInput <- function(input, output, session) {
         label = "Display Extra Plots",
         choiceNames = c("Covariance Plot", "R-squared Plot"),
         choiceValues = c("covplt", "r2plt"),
-        inline = TRUE
+        selected = "covplt",
+        inline = TRUE,
       ))
+    )
+  })
+}
+
+## Dashboard UI
+dashboardUI <- function(id){
+  ns <- NS(id)
+  navbarPage(
+    theme = shinythemes::shinytheme("yeti"),
+    inverse = TRUE,
+    title = "Simulation Overview",
+    position = "static-top",
+    tabPanel(
+      "Home",
+      icon = icon("home"),
+      uiOutput(ns("homepage"))
+    ),
+    tabPanel(
+      "Plot Details",
+      icon = icon("line-chart"),
+      uiOutput(ns("plotDetails"))
+    )
+  )
+}
+dashboard <- function(input, output, session, sim_obj, type) {
+  sobj <- sim_obj
+  beta <- sobj[["beta"]]
+  out <- lapply(1:ncol(beta), function(col) which(beta[, col] != 0))
+  `names<-`(out, paste0("Response", seq_along(out)))
+  
+  ns <- session$ns
+  output$homepage <- renderUI({
+    div(
+      class = "grid-container",
+      id = "overview-container",
+      ## Sidebar ----
+      div(id = "simplot1",
+          class = "grid-content",
+          simPlotUI("betaPlot")),
+      div(id = "simplot2",
+          class = "grid-content",
+          simPlotUI("relComp")),
+      div(id = "simplot3",
+          class = "grid-content",
+          simPlotUI("estRelComp")),
+      conditionalPanel(
+        id = "covplot1",
+        class = "grid-content",
+        condition = "output.extraplot",
+        covPlotUI("relpos")
+      ),
+      conditionalPanel(
+        condition = "output.extraplot",
+        id = "covplot2",
+        class = "grid-content",
+        covPlotUI("rotation")
+      ),
+      conditionalPanel(
+        condition = "output.extraplot",
+        id = "covplot3",
+        class = "grid-content",
+        covPlotUI("relpred")
+      )
+    )
+  })
+  output$betaDetails <- renderText({
+    paste(
+      "Here we can see that for the first response", paste0(out[[1]], collapse = ", "),
+      "predictors are relevant and has non-zero regression coefficients.",
+      "Since we have setup to have", sobj[["q"]][1],
+      "predictors to be relevant for first response",
+      ifelse(type == "multivariate", "component.", "variable."),
+      strong("Bold Text")
+    )
+  })
+  output$plotDetails <- renderUI({
+    fillRow(
+      flex = c(5, 3),
+      id = "plot-details",
+      ## Sidebar ----
+      tabsetPanel(
+        tabPanel(
+          "Beta Coefficient",
+          div(
+            id = "beta-details-container",
+            class = "details-container",
+            style = "display: flex; flex-direction: column;",
+            simPlotUI("betaPlot1"),
+            div(
+              id = "beta-details",
+              class = "details",
+              htmlOutput(ns("betaDetails"))
+            )
+          )
+        ),
+        tabPanel(
+          "Relevant Components",
+          div(
+            style = "display: flex; flex-direction: column;",
+            simPlotUI("relComp1"),
+            div(
+              style = "flex: 1;",
+              "I am relevant components."
+            )
+          )
+        ),
+        tabPanel(
+          "Estimated Relevant Components",
+          simPlotUI("estRelComp1")
+        )
+      ),
+      ## CovPlot ----
+      tabsetPanel(
+        tabPanel(
+          "Relpos",
+          covPlotUI("relpos1")
+        ),
+        tabPanel(
+          "Rotation",
+          covPlotUI("rotation1")
+        ),
+        tabPanel(
+          "Relpred",
+          covPlotUI("relpred1")
+        )
+      )
+    )
+  })
+}
+
+## Parameter Description
+paramPlusUI <- function(id) {
+  ns <- NS(id)
+  navbarPage(
+    theme = shinythemes::shinytheme("yeti"),
+    inverse = TRUE,
+    title = "Parameter Description",
+    position = "static-top",
+    tabPanel(
+      "Parameters Details",
+      icon = icon("info"),
+      ## Main Container ----
+      div(
+        class = "grid-container",
+        id = "parameters-details",
+        uiOutput(ns("details_n")),
+        uiOutput(ns("details_p")),
+        uiOutput(ns("details_q")),
+        uiOutput(ns("details_relpos")),
+        uiOutput(ns("details_R2")),
+        uiOutput(ns("details_gamma")),
+        uiOutput(ns("details_ntest")),
+        conditionalPanel(
+          "input['sim-type-type'] == 'multivariate'",
+          uiOutput(ns("details_ypos")),
+          uiOutput(ns("details_m"))
+        ),
+        conditionalPanel(
+          "input['sim-type-type'] == 'bivariate'",
+          uiOutput(ns("details_rho"))
+        )
+      )
+    )
+  )
+}
+paramPlus <- function(input, output, session, type) {
+  details <- function(name, notation = "\\(n\\)", description, details) {
+    withMathJax(div(
+      id = "n-desc",
+      class = "grid-content",
+      box(
+        collapsible = TRUE,
+        collapsed = FALSE,
+        width = 12,
+        status = "primary",
+        title = div(
+          div(
+            class = "inner-desc-name",
+            tags$span(class = "parm-name", name)
+          ),
+          div(
+            class = "inner-desc-notation",
+            span(
+              class = "parm-notation",
+              notation
+            )
+          ),
+          div(
+            class = "inner-desc-more",
+            span(
+              class = "parm-more",
+              description
+            )
+          )),
+        div(
+          class = "inner-desc-details",
+          span(
+            class = "parm-details",
+            HTML(details)
+          )
+        ))
+    ))
+  }
+  output$details_n <- renderUI({
+    shinyjs::runjs("$('#map').hide();")
+    details(
+      name = "n:",
+      notation = "\\(n\\)",
+      description = "Number of training samples",
+      details = paste0("Number of training sample.",
+                       "This can be larger than number of",
+                       "predictor variables.")
+    )
+  })
+  output$details_p <- renderUI({
+    details(
+      name = "p:",
+      notation = "\\(p\\)",
+      description = "Number of Predictor Variables",
+      details = paste0("Number of predictor variables.",
+                       "Simrel is capable simulating \\(p > n\\) model")
+    )
+  })
+  output$details_q <- renderUI({
+    details(
+      name = "q:",
+      notation = "\\(q\\)",
+      description = "Number of relevant predictors",
+      details = switch(
+        type(),
+        ## q: univariate ----
+        "univariate" = paste(
+          "Number of relevant predictor variables.",
+          "it is a number specifying how many predictors",
+          "are relevant for response."
+        ),
+        ## q: bivariate ----
+        "bivariate" = paste(
+          "Number of relevant predictor variables.",
+          "It is a vector with three elements.",
+          tags$ul(
+                 tags$li(
+                        paste(
+                          "First one represents the number of predictors",
+                          "relevant for first response variable."
+                        )
+                      ),
+                 tags$li(
+                        paste(
+                          "Second one represents the number of predictors",
+                          "relevant for second response variable."
+                        )
+                      ),
+                 tags$li(
+                        paste(
+                          "Third one represents the number of",
+                          "predictors relevant for both of the response variables."
+                        )
+                      )
+               )
+        ),
+        ## q: multivariate ----
+        "multivariate" = paste(
+          "Number of relevant predictor variables.",
+          "It is a vector where each element represents",
+          "the number of predictors relevant for each response",
+          "components. </br>For example, <code>c(15, 8)</code>",
+          "gives us a dataset with 15 predictor variables relevant",
+          "for the first response component and another 8 (not common) predictor",
+          "variables relevant for the second response component. This will",
+          "also refers that there are two latent dimension of response space",
+          "that contains information while there can be more than two response",
+          "variables which are obtained by combining these two informative",
+          "response components with non-informative components through",
+          "orthogonal rotation of covariance matrix."
+        )
+      )
+    )
+  })
+  output$details_relpos <- renderUI({
+    details(
+      name = "relpos:",
+      notation = "\\(\\mathcal{P}\\)",
+      description = "Position index of relevant predictor components",
+      details = paste0("")
+    )
+  })
+  output$details_ypos <- renderUI({
+    details(
+      name = "ypos:",
+      notation = "\\(\\mathcal{Q}\\)",
+      description = "Index of response components to combine together",
+      details = paste0("This is a list of index integer. Each element of index",
+                       "can be a vector indicating how to combine the response",
+                       "components while orthogonal rotation.",
+                       br(), "For example:", code("list(c(1, 4), c(2, 3))"),
+                       "shows that there are two informative components 1 and 2",
+                       "the first response component is combined with uninformative response",
+                       "component 4 and the second response component is combined with uninformative",
+                       "response component 3. In total we will obtain 4 response components.",
+                       "In this situation, we can expect to have first and fourth response variables",
+                       "sharing same relevant predictors and second and third response variables",
+                       "sharing same relevant predictors. In shiny application, we can input",
+                       "the list as", code("1, 4; 2, 3"), "separating list elements by (;) and",
+                       "vector elements by (,).")
+    )
+  })
+  output$details_R2 <- renderUI({
+    details(
+      name = "R2:",
+      notation = "\\(\\rho^2\\)",
+      description = "Coefficient of Determination",
+      details = paste0("")
+    )
+  })
+  output$details_gamma <- renderUI({
+    details(
+      name = "gamma:",
+      notation = "\\(\\gamma\\)",
+      description = "Decay factor of eigenvalues of predictors",
+      details = paste0("")
+    )
+  })
+  output$details_rho <- renderUI({
+    details(
+      name = "rho:",
+      notation = "\\(\\rho\\)",
+      description = "Correlation between response variables with and without given \\mathbf{x}",
+      details = paste0("")
+    )
+  })
+  output$details_m <- renderUI({
+    details(
+      name = "m:",
+      notation = "\\(m\\)",
+      description = "Number of Response variables",
+      details = paste0("")
+    )
+  })
+  output$details_ntest <- renderUI({
+    details(
+      name = "ntest:",
+      notation = "\\(n_\\text{test}\\)",
+      description = "Number of test samples",
+      details = paste0("Number of test (validation) sample.",
+                       "This can be larger than number of",
+                       "predictor variables.")
     )
   })
 }

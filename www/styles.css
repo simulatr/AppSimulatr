@@ -1,0 +1,187 @@
+@import url('https://fonts.googleapis.com/css?family=Quicksand');
+@import url('https://fonts.googleapis.com/css?family=Source+Code+Pro');
+
+/* Fix dimenstion of page */
+body{
+  height: 100vh;
+  overflow: hidden;
+}
+
+/* Making page fit to container */
+.main-sidebar.shiny-bound-input{
+  font-family: Quicksand, "serif";
+}
+.content-wrapper>section.content{
+  padding: 0;
+  margin: 0;
+  height: 100vh;
+  overflow-y: scroll;
+}
+
+a, a:hover, a:focus, a:active, a:visited{
+  text-decoration: none!important;
+}
+
+/* Sidebar */
+section.sidebar.shiny-bound-input {
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    height: calc(100vh - 40px);
+    overflow-x: hidden;
+    overflow-y: scroll;
+}
+
+/* Download buttons */
+#download{
+  padding-top: 15px;
+}
+#download h4.text-primary:hover {
+    border-top: 3px solid #337ab7;
+    padding-top: 10px;
+    margin-top: -10px;
+}
+#copyright{
+  background-color: #367fa9;
+  color: #fff;
+  border-bottom: 0 solid transparent;
+  display: block;
+  float: left;
+  height: 50px;
+  line-height: 50px;
+  text-align: center;
+  font-family: "Helvetica Neue",Helvetica,Arial,sans-serif;
+  padding: 0 15px;
+  font-weight: 300;
+  overflow: hidden;
+  margin-top: 10px;
+}
+
+/* Home Page */
+#dash-homepage{
+  margin-bottom: 100px;
+  max-width: 100%;
+}
+
+/* About Page */
+#about{
+    position: relative;
+    background-color: whitesmoke;
+    width: 100%;
+    min-height: calc(100vh - 100px);
+    overflow-y: scroll;
+    margin-bottom: 50px;
+}
+#about>div{
+    width: 80%;
+    margin: 0 auto;
+}
+#about>div pre{
+    border: none;
+}
+#about .title, #about .author{
+  text-align:center;
+}
+#about .author{
+  margin-bottom: 50px;
+}
+#about p{
+  font-size: 1.2em;
+  font-weight: 300;
+}
+
+/* Flowchart Page */
+#flowchart{
+    position: relative;
+    background-color: whitesmoke;
+    width: 100%;
+    min-height: 100vh;
+}
+
+/* Grid Layout Page Start*/
+/* Overview Container */
+#overview-container.grid-container {
+    width: 100%;
+    display: grid;
+    grid-template-areas:
+        "simplot2 simplot2 covplot1"
+        "simplot3 simplot3 covplot3"
+        "simplot1 simplot1 covplot2";
+    grid-template-columns: repeat(3, 1fr);
+    grid-template-rows: repeat(3, auto);
+    grid-gap: 10px;
+    height: 100%;
+}
+#overview-container .grid-content{}
+
+/* Simulation Plots */
+#overview-container #simplot1{grid-area: simplot1;}
+#overview-container #simplot2{grid-area: simplot2;}
+#overview-container #simplot3{grid-area: simplot3;}
+#overview-container #covplot1{grid-area: covplot1;}
+#overview-container #covplot2{grid-area: covplot2;}
+#overview-container #covplot3{grid-area: covplot3;}
+
+@media (max-width: 1024px) {
+    #overview-container.grid-container{
+        width: 100%;
+        grid-template-areas:
+            "simplot2 simplot2 simplot2 simplot2"
+            "simplot3 simplot3 simplot3 simplot3"
+            "simplot1 simplot1 simplot1 simplot1"
+            "covplot1 covplot1 covplot1 covplot1"
+            "covplot2 covplot2 covplot2 covplot2"
+            "covplot3 covplot3 covplot3 covplot3";
+        grid-template-columns: repeat(4, 1fr);
+        grid-template-rows: repeat(6, auto);
+    }
+}
+
+/* Parameter Details */
+#parameters-details .grid-content .box-header .box-title div {
+    display: grid;
+    grid-auto-flow: column;
+    grid-gap: 15px;
+    align-content: baseline;
+}
+
+#parameters-details{
+    position: relative;
+    display: flex;
+    width: 100%;
+    flex-direction: column;
+    max-height: -webkit-fill-available;
+    max-height: -moz-fill-available;
+    max-height: fill-available;
+    flex-wrap: wrap;
+}
+#parameters-details>div{
+    width: 100%;
+}
+
+@media (min-width: 1200px) {
+  #parameters-details>div{
+      max-width: 50%;
+  }
+}
+@media (min-width: 1600px) {
+  #parameters-details>div{
+      min-width: 32%;
+  }
+}
+
+/* Plot Details */
+#plot-details .details-container .details {
+  font-family: palatino, times;
+  font-size: 1.2em;
+  padding-top: 20px;
+}
+@media (max-width: 1400px) {
+  #plot-details.flexfill-container {
+    height: 100vh!important;
+    flex-direction: column !important;
+  }
+  #plot-details.flexfill-container div{
+    flex: 1!important;
+  }
+}

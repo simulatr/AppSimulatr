@@ -61,6 +61,7 @@ resp <- function(input, output, session, nresp) {
   which_resp <- reactive(input$whichResp)
   return(which_resp)
 }
+
 ## Summary Interface
 estSummaryUI <- function(id){
   ns <- NS(id)
@@ -303,8 +304,8 @@ commonInputUI <- function(id) {
   uiOutput(ns("commonUI"))
 }
 commonInput <- function(input, output, session) {
+  ns <- session$ns
   output$commonUI <- renderUI({
-    ns <- session$ns
     tagList(
       fluidRow(
         column(6, numericInput(ns("n"), label = "N: Train", value = 200, min = 10, step = 1)),
@@ -326,6 +327,15 @@ commonInput <- function(input, output, session) {
         )
       )
     )
+  })
+
+  ## Gamma Plot -----------
+  output$gamma_plot <- renderPlot({
+    dta <- data.frame(
+      variables = 1:input[[ns("p")]]
+    )
+    dta$lmd <- exp(-1 * input[[ns("gamma")]] * (dta$variables - 1))
+    plot(dta)
   })
 }
 
@@ -409,7 +419,7 @@ dashboard <- function(input, output, session, sim_obj, type) {
   beta <- sobj[["beta"]]
   out <- lapply(1:ncol(beta), function(col) which(beta[, col] != 0))
   `names<-`(out, paste0("Response", seq_along(out)))
-  
+
   ns <- session$ns
   output$homepage <- renderUI({
     div(
@@ -452,7 +462,34 @@ dashboard <- function(input, output, session, sim_obj, type) {
       "Since we have setup to have", sobj[["q"]][1],
       "predictors to be relevant for first response",
       ifelse(type == "multivariate", "component.", "variable."),
-      strong("Bold Text")
+      "These are the true beta coefficients. When estimated with",
+      "enough number of observation we can expect them to be",
+      "around these values."
+    )
+  })
+  output$relcompDetails <- renderText({
+    paste(
+      "Here the bars represent eigenvalues of predictors and the lines represents",
+      "covariance between predictor components with each response components.",
+      "As we have setup principal components", sobj[["relpos"]][1], "are relevant",
+      "for first response component and", sobj[["relpos"]][2], "are relevant",
+      "for second response component. Since there are only two informative response component",
+      "in this case, there are not any predictor components that have non-zero",
+      "correlation with any response component."
+    )
+  })
+  output$estRelcompDetails <- renderText({
+    paste(
+      "Here the bars represent eigenvalues of predictors and the lines represents",
+      "expected covariance between predictor components with each responses.",
+      "Imagine a situation when component corresponding to small eigenvalues are relevant.",
+      "Such situation makes a model difficult to estimate. On the other hand,",
+      "When components with high variation (eigenvalues) are not relevant for a response",
+      "it increases noise in the model and also makes difficult to estimate.",
+      "Here we can see response variables", sobj[["ypos"]][1], "have similar covariance with",
+      "predictor components. The situation is identical with response variables",
+      sobj[["ypos"]][2], ". This is because we have obtained these response variables",
+      "rotating corresponding response components together orthogonally."
     )
   })
   output$plotDetails <- renderUI({
@@ -478,17 +515,30 @@ dashboard <- function(input, output, session, sim_obj, type) {
         tabPanel(
           "Relevant Components",
           div(
+            id = "relpos-details-container",
+            class = "details-container",
             style = "display: flex; flex-direction: column;",
             simPlotUI("relComp1"),
             div(
-              style = "flex: 1;",
-              "I am relevant components."
+              id = "relcomp-details",
+              class = "details",
+              htmlOutput(ns("relcompDetails"))
             )
           )
         ),
         tabPanel(
           "Estimated Relevant Components",
-          simPlotUI("estRelComp1")
+          div(
+            id = "est-relpos-details-container",
+            class = "details-container",
+            style = "display: flex; flex-direction: column;",
+            simPlotUI("estRelComp1"),
+            div(
+              id = "relcomp-details",
+              class = "details",
+              htmlOutput(ns("estRelcompDetails"))
+            )
+          )
         )
       ),
       ## CovPlot ----
@@ -545,8 +595,9 @@ paramPlusUI <- function(id) {
     )
   )
 }
-paramPlus <- function(input, output, session, type) {
-  details <- function(name, notation = "\\(n\\)", description, details) {
+paramPlus <- function(input, output, session, type, params) {
+  ns <- session$ns
+  details <- function(name, notation = "\\(n\\)", description, details, extra = NULL) {
     withMathJax(div(
       id = "n-desc",
       class = "grid-content",
@@ -573,14 +624,22 @@ paramPlus <- function(input, output, session, type) {
               class = "parm-more",
               description
             )
-          )),
+          )
+        ),
         div(
           class = "inner-desc-details",
           span(
             class = "parm-details",
             HTML(details)
           )
-        ))
+        ),
+        div(
+          style = "margin: 0; padding: 0;",
+          class = "inner-desc-details",
+          if(!is.null(extra))
+              extra
+        )
+      )
     ))
   }
   output$details_n <- renderUI({
@@ -664,7 +723,38 @@ paramPlus <- function(input, output, session, type) {
       name = "relpos:",
       notation = "\\(\\mathcal{P}\\)",
       description = "Position index of relevant predictor components",
-      details = paste0("")
+      details = switch(
+        type(),
+        "univariate" = paste(
+          "A vector including position index of relevant predictor components. For example:",
+          code("c(1, 2, 3)"), "indicate that principal components at position 1, 2, and 3",
+          "are relevant for the response variable."
+        ),
+        "bivariate" = paste(
+          "It is a list with two elements. First element is a vector of position index",
+          "of relevant predictor components for first response variable. Similarly",
+          "the second element is a vector of position index of relevant predictor components",
+          "for second response variable. In Bivariate simulation, we can have common set of",
+          "predictor components that are relevant for both of the response. <br/> For example, ",
+          code("list(c(1, 2, 3), c(2, 3, 4))"), "indicates that the first principal components of",
+          "\\(\\mathbf{x}\\) is relevant for first response only, the second and third principal",
+          "components are relevant for both of the response variables. The fourth principal",
+          "components is relevant for only the second response variable."
+        ),
+        "multivariate" = paste(
+          "It is a list of multiple elements. Each element in the list can be a vector",
+          "indicating the position index of relevant predictor components for a response",
+          "component. </br> For example:", code("list(c(1, 2), c(3, 4), c(5))"), "indicates",
+          "that there are three informative response components. For the first response",
+          "component predictor components 1 and 2 are relevant, for the second response",
+          "component predictor components 3 and 4 are relevant and for the third response",
+          "component predictor component 5 is relevant. </br>In case of multivariate simulation,",
+          "we have assumed that there are not any common predictor components common to multiple",
+          "response components. However when the response components are rotated together",
+          "as specified in", code("ypos"), "multiple response variables can have",
+          "same set of relevant predictor variables."
+        )
+      )
     )
   })
   output$details_ypos <- renderUI({
@@ -692,7 +782,17 @@ paramPlus <- function(input, output, session, type) {
       name = "R2:",
       notation = "\\(\\rho^2\\)",
       description = "Coefficient of Determination",
-      details = paste0("")
+      details = paste(
+        "A", ifelse(type() == "univariate", "float", "vector"),
+        "specifying the population coefficient of determination.",
+        if(type() != "univariate") {
+          paste(
+            "It is a vector of length", ifelse(type() == "bivariate", 2, "m"),
+            "each specifying the coefficient of determination for a response",
+            ifelse(type() == "bivariate", "variable", "component"), "."
+          )
+        }
+      )
     )
   })
   output$details_gamma <- renderUI({
@@ -700,7 +800,13 @@ paramPlus <- function(input, output, session, type) {
       name = "gamma:",
       notation = "\\(\\gamma\\)",
       description = "Decay factor of eigenvalues of predictors",
-      details = paste0("")
+      details = paste(
+        "A numeric value greater than 0 specifying the factor by which",
+        "eigenvalues of predictor decay exponentially. It is governed by",
+        "the relation \\[\\lambda_i = e^{-\\gamma(i - 1)}\\]",
+        "That is, as", code("gamma"), "increases, the eigenvalues decreases",
+        "rapidly generating highly multi-collinear predictors."
+      )
     )
   })
   output$details_rho <- renderUI({
@@ -708,7 +814,13 @@ paramPlus <- function(input, output, session, type) {
       name = "rho:",
       notation = "\\(\\rho\\)",
       description = "Correlation between response variables with and without given \\mathbf{x}",
-      details = paste0("")
+      details = paste(
+        "A vector indicating the correlation between two response variables with and without",
+        "given \\(\\mathbf{x}\\). For example,", code("c(0.7, 0.5)"), "simulates data with",
+        "response having correlation of 0.7 and 0.5 with and without predictors.",
+        "In shiny application, we can input 0.7 in", code("rho1"), "and 0.5 in", code("rho2"),
+        "field."
+      )
     )
   })
   output$details_m <- renderUI({
@@ -716,7 +828,7 @@ paramPlus <- function(input, output, session, type) {
       name = "m:",
       notation = "\\(m\\)",
       description = "Number of Response variables",
-      details = paste0("")
+      details = paste0("An integer indicating number of response variables.")
     )
   })
   output$details_ntest <- renderUI({

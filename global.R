@@ -529,12 +529,18 @@ paramPlusUI <- function(id) {
         uiOutput(ns("details_p")),
         uiOutput(ns("details_q")),
         uiOutput(ns("details_relpos")),
-        uiOutput(ns("details_ypos")),
         uiOutput(ns("details_R2")),
         uiOutput(ns("details_gamma")),
-        uiOutput(ns("details_rho")),
-        uiOutput(ns("details_m")),
-        uiOutput(ns("details_ntest"))
+        uiOutput(ns("details_ntest")),
+        conditionalPanel(
+          "input['sim-type-type'] == 'multivariate'",
+          uiOutput(ns("details_ypos")),
+          uiOutput(ns("details_m"))
+        ),
+        conditionalPanel(
+          "input['sim-type-type'] == 'bivariate'",
+          uiOutput(ns("details_rho"))
+        )
       )
     )
   )
@@ -577,7 +583,6 @@ paramPlus <- function(input, output, session, type) {
         ))
     ))
   }
-  ## Number of training --------
   output$details_n <- renderUI({
     shinyjs::runjs("$('#map').hide();")
     details(
@@ -636,81 +641,90 @@ paramPlus <- function(input, output, session, type) {
                       )
                )
         ),
+        ## q: multivariate ----
         "multivariate" = paste(
           "Number of relevant predictor variables.",
           "It is a vector where each element represents",
           "the number of predictors relevant for each response",
-          "components"
+          "components. </br>For example, <code>c(15, 8)</code>",
+          "gives us a dataset with 15 predictor variables relevant",
+          "for the first response component and another 8 (not common) predictor",
+          "variables relevant for the second response component. This will",
+          "also refers that there are two latent dimension of response space",
+          "that contains information while there can be more than two response",
+          "variables which are obtained by combining these two informative",
+          "response components with non-informative components through",
+          "orthogonal rotation of covariance matrix."
         )
       )
     )
   })
   output$details_relpos <- renderUI({
     details(
-      name = "n:",
-      notation = "\\(n\\)",
-      description = "Number of training samples",
-      details = paste0("Number of training sample.",
-                       "This can be larger than number of",
-                       "predictor variables.")
+      name = "relpos:",
+      notation = "\\(\\mathcal{P}\\)",
+      description = "Position index of relevant predictor components",
+      details = paste0("")
     )
   })
   output$details_ypos <- renderUI({
     details(
-      name = "n:",
-      notation = "\\(n\\)",
-      description = "Number of training samples",
-      details = paste0("Number of training sample.",
-                       "This can be larger than number of",
-                       "predictor variables.")
+      name = "ypos:",
+      notation = "\\(\\mathcal{Q}\\)",
+      description = "Index of response components to combine together",
+      details = paste0("This is a list of index integer. Each element of index",
+                       "can be a vector indicating how to combine the response",
+                       "components while orthogonal rotation.",
+                       br(), "For example:", code("list(c(1, 4), c(2, 3))"),
+                       "shows that there are two informative components 1 and 2",
+                       "the first response component is combined with uninformative response",
+                       "component 4 and the second response component is combined with uninformative",
+                       "response component 3. In total we will obtain 4 response components.",
+                       "In this situation, we can expect to have first and fourth response variables",
+                       "sharing same relevant predictors and second and third response variables",
+                       "sharing same relevant predictors. In shiny application, we can input",
+                       "the list as", code("1, 4; 2, 3"), "separating list elements by (;) and",
+                       "vector elements by (,).")
     )
   })
   output$details_R2 <- renderUI({
     details(
-      name = "n:",
-      notation = "\\(n\\)",
-      description = "Number of training samples",
-      details = paste0("Number of training sample.",
-                       "This can be larger than number of",
-                       "predictor variables.")
+      name = "R2:",
+      notation = "\\(\\rho^2\\)",
+      description = "Coefficient of Determination",
+      details = paste0("")
     )
   })
   output$details_gamma <- renderUI({
     details(
-      name = "n:",
-      notation = "\\(n\\)",
-      description = "Number of training samples",
-      details = paste0("Number of training sample.",
-                       "This can be larger than number of",
-                       "predictor variables.")
+      name = "gamma:",
+      notation = "\\(\\gamma\\)",
+      description = "Decay factor of eigenvalues of predictors",
+      details = paste0("")
     )
   })
   output$details_rho <- renderUI({
     details(
-      name = "n:",
-      notation = "\\(n\\)",
-      description = "Number of training samples",
-      details = paste0("Number of training sample.",
-                       "This can be larger than number of",
-                       "predictor variables.")
+      name = "rho:",
+      notation = "\\(\\rho\\)",
+      description = "Correlation between response variables with and without given \\mathbf{x}",
+      details = paste0("")
     )
   })
   output$details_m <- renderUI({
     details(
-      name = "n:",
-      notation = "\\(n\\)",
-      description = "Number of training samples",
-      details = paste0("Number of training sample.",
-                       "This can be larger than number of",
-                       "predictor variables.")
+      name = "m:",
+      notation = "\\(m\\)",
+      description = "Number of Response variables",
+      details = paste0("")
     )
   })
   output$details_ntest <- renderUI({
     details(
-      name = "n:",
-      notation = "\\(n\\)",
-      description = "Number of training samples",
-      details = paste0("Number of training sample.",
+      name = "ntest:",
+      notation = "\\(n_\\text{test}\\)",
+      description = "Number of test samples",
+      details = paste0("Number of test (validation) sample.",
                        "This can be larger than number of",
                        "predictor variables.")
     )

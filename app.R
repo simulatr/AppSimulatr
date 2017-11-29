@@ -10,6 +10,7 @@ library(reshape2)
 library(ggplot2)
 library(plotly)
 library(pls)
+library(V8)
 shinyjs::useShinyjs()
 
 ## Render About Page ----
@@ -48,6 +49,7 @@ ui <- dashboardPage(
         menuItem(
           id = "settings",
           "Parameter Settings",
+          startExpanded = TRUE,
           icon = icon("sliders"),
           tabName = "settings",
           simUI('sim-id'),
@@ -265,6 +267,7 @@ server <- function(input, output, session) {
     shinyjs::hide(selector = "ul.treeview-menu.menu-open", anim = TRUE)
     shinyjs::removeClass(selector = ".sidebar-menu>li.treeview.active",
                          class = "active")
+    shinyjs::runjs("$('a[href=\"#shiny-tab-overview\"]').click();")
 
     ## Simulation Plot Modules -----------
     callModule(simPlot, 'betaPlot', simObj(), 1)

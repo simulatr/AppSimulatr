@@ -147,20 +147,26 @@ section.sidebar.shiny-bound-input {
 
 #parameters-details{
     position: relative;
-    display: grid;
+    display: flex;
     width: 100%;
-    grid-gap: 10px;
-    grid-template-columns: 1fr;
+    flex-direction: column;
+    max-height: -webkit-fill-available;
+    max-height: -moz-fill-available;
+    max-height: fill-available;
+    flex-wrap: wrap;
+}
+#parameters-details>div{
+    width: 100%;
 }
 
 @media (min-width: 1200px) {
-  #parameters-details{
-      grid-template-columns: repeat(2, 1fr);
+  #parameters-details>div{
+      max-width: 50%;
   }
 }
 @media (min-width: 1600px) {
-  #parameters-details{
-      grid-template-columns: repeat(3, 1fr);
+  #parameters-details>div{
+      min-width: 32%;
   }
 }
 

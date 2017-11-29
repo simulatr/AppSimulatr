@@ -149,10 +149,8 @@ section.sidebar.shiny-bound-input {
     position: relative;
     display: flex;
     width: 100%;
-    flex-direction: column;
-    max-height: -webkit-fill-available;
-    max-height: -moz-fill-available;
-    max-height: fill-available;
+    padding-bottom: 50px;
+    height: 100%;
     flex-wrap: wrap;
 }
 #parameters-details>div{
@@ -180,8 +178,5 @@ section.sidebar.shiny-bound-input {
   #plot-details.flexfill-container {
     height: 100vh!important;
     flex-direction: column !important;
-  }
-  #plot-details.flexfill-container div{
-    flex: 1!important;
   }
 }

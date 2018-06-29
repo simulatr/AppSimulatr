@@ -1,6 +1,7 @@
 ## This is Shiny Simrel App -----
 library(shiny)
 library(shinydashboard)
+# library(dashboardthemes)
 library(shinyBS)
 library(shinyjs)
 library(simrel)
@@ -126,6 +127,9 @@ ui <- dashboardPage(
 
   ## Body Starts --------
   dashboardBody(
+    # shinyDashboardThemes(
+    #   theme = "grey_light"
+    # ),
     tags$style("height:100vh;"),
     ## tags$link(rel = "stylesheet", type = "text/css", href = "custom.css"),
     ## Map Page ------
@@ -272,7 +276,7 @@ server <- function(input, output, session) {
     ## Simulation Plot Modules -----------
     callModule(simPlot, 'betaPlot', simObj(), 1)
     callModule(simPlot, 'relComp', simObj(), 2)
-    callModule(simPlot, 'estRelComp', simObj(), 3)
+    # callModule(simPlot, 'estRelComp', simObj(), 3)
 
     ## Simulation Plot Modules for tabPanel -----------
     callModule(simPlot, 'betaPlot1', simObj(), 1)
@@ -288,8 +292,8 @@ server <- function(input, output, session) {
     ## Covariance Plot Module ----------
     if ("covplt" %in% input[["extra-input-extraplot"]]) {
       callModule(covPlot, 'relpos', simObj(), "relpos")
-      callModule(covPlot, 'rotation', simObj(), "rotation")
       callModule(covPlot, 'relpred', simObj(), "relpred")
+      # callModule(covPlot, 'rotation', simObj(), "rotation")
 
       ## Covariance Plots for tab panel ----
       callModule(covPlot, 'relpos1', simObj(), "relpos")

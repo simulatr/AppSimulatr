@@ -104,9 +104,9 @@ section.sidebar.shiny-bound-input {
     width: 100%;
     display: grid;
     grid-template-areas:
-        "simplot2 simplot2 covplot1"
-        "simplot3 simplot3 covplot3"
-        "simplot1 simplot1 covplot2";
+        "simplot1 simplot1 covplot1"
+        "simplot2 simplot2 covplot3"
+        "simplot3 simplot3 covplot2";
     grid-template-columns: repeat(3, 1fr);
     grid-template-rows: repeat(3, auto);
     grid-gap: 10px;
@@ -126,9 +126,9 @@ section.sidebar.shiny-bound-input {
     #overview-container.grid-container{
         width: 100%;
         grid-template-areas:
+            "simplot1 simplot1 simplot1 simplot1"
             "simplot2 simplot2 simplot2 simplot2"
             "simplot3 simplot3 simplot3 simplot3"
-            "simplot1 simplot1 simplot1 simplot1"
             "covplot1 covplot1 covplot1 covplot1"
             "covplot2 covplot2 covplot2 covplot2"
             "covplot3 covplot3 covplot3 covplot3";

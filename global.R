@@ -216,7 +216,7 @@ covPlotUI <- function(id, ...) {
 }
 covPlot <- function(input, output, session, sim_obj, plot_type) {
   output$plot <- renderPlot({
-    cov_plot(sim_obj, plot_type)
+    cov_plot(sim_obj, plot_type, facetting = FALSE)
   }, res = 105)
 }
 
